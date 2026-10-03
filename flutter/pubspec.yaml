@@ -1,0 +1,17 @@
+name: noovoleum_map_pin
+description: uCollect station map pin (state + partner frame) as SVG, widget, and PNG for MapLibre.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ">=2.0.7 <3.0.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,0 +1,5 @@
+node_modules/
+flutter/.dart_tool/
+flutter/build/
+flutter/pubspec.lock
+flutter/.flutter-plugins*

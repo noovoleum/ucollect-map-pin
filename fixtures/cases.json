@@ -1,0 +1,570 @@
+[
+ {
+  "name": "available-station-none",
+  "spec": {
+   "state": "available",
+   "kind": "station",
+   "frame": null
+  },
+  "key": "pin|available|station|||5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-station-alfamart",
+  "spec": {
+   "state": "available",
+   "kind": "station",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|available|station||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-station-pertamina",
+  "spec": {
+   "state": "available",
+   "kind": "station",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|available|station||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-station-gold",
+  "spec": {
+   "state": "available",
+   "kind": "station",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|available|station||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-collection_point-none",
+  "spec": {
+   "state": "available",
+   "kind": "collection_point",
+   "frame": null
+  },
+  "key": "pin|available|collection_point|||5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-collection_point-alfamart",
+  "spec": {
+   "state": "available",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|available|collection_point||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-collection_point-pertamina",
+  "spec": {
+   "state": "available",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|available|collection_point||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "available-collection_point-gold",
+  "spec": {
+   "state": "available",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|available|collection_point||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "closed-station-none",
+  "spec": {
+   "state": "closed",
+   "kind": "station",
+   "frame": null
+  },
+  "key": "pin|closed|station|||5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-station-alfamart",
+  "spec": {
+   "state": "closed",
+   "kind": "station",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|closed|station||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-station-pertamina",
+  "spec": {
+   "state": "closed",
+   "kind": "station",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|closed|station||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-station-gold",
+  "spec": {
+   "state": "closed",
+   "kind": "station",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|closed|station||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-collection_point-none",
+  "spec": {
+   "state": "closed",
+   "kind": "collection_point",
+   "frame": null
+  },
+  "key": "pin|closed|collection_point|||5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-collection_point-alfamart",
+  "spec": {
+   "state": "closed",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|closed|collection_point||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-collection_point-pertamina",
+  "spec": {
+   "state": "closed",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|closed|collection_point||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "closed-collection_point-gold",
+  "spec": {
+   "state": "closed",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|closed|collection_point||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "planned-station-none",
+  "spec": {
+   "state": "planned",
+   "kind": "station",
+   "frame": null
+  },
+  "key": "pin|planned|station|SOON||5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-station-alfamart",
+  "spec": {
+   "state": "planned",
+   "kind": "station",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|planned|station|SOON|stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-station-pertamina",
+  "spec": {
+   "state": "planned",
+   "kind": "station",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|planned|station|SOON|rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-station-gold",
+  "spec": {
+   "state": "planned",
+   "kind": "station",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|planned|station|SOON|solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-collection_point-none",
+  "spec": {
+   "state": "planned",
+   "kind": "collection_point",
+   "frame": null
+  },
+  "key": "pin|planned|collection_point|SOON||5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-collection_point-alfamart",
+  "spec": {
+   "state": "planned",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|planned|collection_point|SOON|stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-collection_point-pertamina",
+  "spec": {
+   "state": "planned",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|planned|collection_point|SOON|rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "planned-collection_point-gold",
+  "spec": {
+   "state": "planned",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|planned|collection_point|SOON|solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 1
+ },
+ {
+  "name": "maintenance-station-none",
+  "spec": {
+   "state": "maintenance",
+   "kind": "station",
+   "frame": null
+  },
+  "key": "pin|maintenance|station|||5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-station-alfamart",
+  "spec": {
+   "state": "maintenance",
+   "kind": "station",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|maintenance|station||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-station-pertamina",
+  "spec": {
+   "state": "maintenance",
+   "kind": "station",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|maintenance|station||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-station-gold",
+  "spec": {
+   "state": "maintenance",
+   "kind": "station",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|maintenance|station||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-collection_point-none",
+  "spec": {
+   "state": "maintenance",
+   "kind": "collection_point",
+   "frame": null
+  },
+  "key": "pin|maintenance|collection_point|||5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-collection_point-alfamart",
+  "spec": {
+   "state": "maintenance",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "key": "pin|maintenance|collection_point||stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-collection_point-pertamina",
+  "spec": {
+   "state": "maintenance",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "key": "pin|maintenance|collection_point||rings:#E31E24,#FFFFFF,#005DAA|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "maintenance-collection_point-gold",
+  "spec": {
+   "state": "maintenance",
+   "kind": "collection_point",
+   "frame": {
+    "pattern": "solid",
+    "colors": [
+     "#D4A017"
+    ]
+   }
+  },
+  "key": "pin|maintenance|collection_point||solid:#D4A017|5|low|1.5|top-left|10",
+  "z": 2
+ },
+ {
+  "name": "promo",
+  "spec": {
+   "state": "available",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   },
+   "banner": "PROMO"
+  },
+  "key": "pin|available|station|PROMO|stripes:#E31E24,#FFD200|5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "new-cp",
+  "spec": {
+   "kind": "collection_point",
+   "banner": "NEW"
+  },
+  "key": "pin|available|collection_point|NEW||5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "fw3-size64",
+  "spec": {
+   "state": "closed",
+   "frame": {
+    "pattern": "rings",
+    "colors": [
+     "#E31E24",
+     "#FFFFFF",
+     "#005DAA"
+    ]
+   }
+  },
+  "options": {
+   "frameWidth": 3,
+   "size": 64
+  },
+  "key": "pin|closed|station||rings:#E31E24,#FFFFFF,#005DAA|3|low|1.5|top-left|10",
+  "z": 3
+ },
+ {
+  "name": "fw7-mid-topright",
+  "spec": {
+   "state": "planned",
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#E31E24",
+     "#FFD200"
+    ]
+   }
+  },
+  "options": {
+   "frameWidth": 7,
+   "bannerPosition": "mid",
+   "bannerScale": 1.25,
+   "badgePosition": "top-right",
+   "badgeRadius": 12
+  },
+  "key": "pin|planned|station|SOON|stripes:#E31E24,#FFD200|7|mid|1.25|top-right|12",
+  "z": 1
+ },
+ {
+  "name": "unknown-state",
+  "spec": {
+   "state": "exploded",
+   "kind": "spaceship"
+  },
+  "key": "pin|available|station|||5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "bad-frame",
+  "spec": {
+   "frame": {
+    "pattern": "plaid",
+    "colors": []
+   }
+  },
+  "key": "pin|available|station|||5|low|1.5|top-left|10",
+  "z": 4
+ },
+ {
+  "name": "five-colours",
+  "spec": {
+   "frame": {
+    "pattern": "stripes",
+    "colors": [
+     "#111111",
+     "#222222",
+     "#333333",
+     "#444444",
+     "#555555"
+    ]
+   }
+  },
+  "key": "pin|available|station||stripes:#111111,#222222,#333333|5|low|1.5|top-left|10",
+  "z": 4
+ }
+]
