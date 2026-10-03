@@ -1,7 +1,7 @@
 {
   "name": "@noovoleum/map-pin",
-  "version": "0.1.0",
-  "description": "uCollect station map pin (state + partner frame) as SVG. Zero deps, no build.",
+  "version": "1.0.0",
+  "description": "uCollect map pin artwork: props in, SVG / React element out. Zero deps, no build.",
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -18,12 +18,14 @@
   "files": [
     "index.js",
     "index.d.ts",
+    "pin.js",
     "react.js",
     "react.d.ts",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "react": ">=17"
+    "react": "^18 || ^19"
   },
   "peerDependenciesMeta": {
     "react": {

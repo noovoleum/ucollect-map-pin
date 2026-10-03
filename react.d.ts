@@ -1,8 +1,10 @@
-import type { HTMLAttributes } from 'react';
-import type { PinSpec, PinOptions } from './index';
-export interface MapPinProps extends PinSpec, Omit<HTMLAttributes<HTMLSpanElement>, 'dangerouslySetInnerHTML'> {
-  size?: number;
-  options?: Omit<PinOptions, 'size'>;
+import type { ReactElement } from 'react';
+import type { PinProps } from './index.js';
+
+export interface MapPinProps extends PinProps {
+  readonly className?: string;
+  /** Accessible name. Omit for a decorative pin (rendered aria-hidden). */
+  readonly 'aria-label'?: string;
 }
-export function MapPin(props: MapPinProps): JSX.Element;
-export function pinDataUrl(spec?: PinSpec, options?: PinOptions): string;
+
+export function MapPin(props: MapPinProps): ReactElement;
