@@ -1,0 +1,34 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  js:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: node verify.mjs
+      - name: Types + SSR (React 18 and 19, node16 + bundler resolution)
+        run: |
+          for v in 18 19; do
+            d="$RUNNER_TEMP/ts$v"; mkdir -p "$d"; cd "$d"
+            npm i -s --no-audit --no-fund typescript@5.9 @types/react@$v react@$v react-dom@$v @types/react-dom@$v
+            node "$GITHUB_WORKSPACE/dev/typecheck.mjs" "$GITHUB_WORKSPACE"
+          done
+
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run: { working-directory: flutter }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test -r expanded

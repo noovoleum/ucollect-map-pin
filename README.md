@@ -1,86 +1,118 @@
 # @noovoleum/map-pin · noovoleum_map_pin
 
-The uCollect station map pin as one shared package for JS/React and Flutter. It draws our flag pin (traced from `ucoflag.png`) in one of 4 states, with an optional partner frame and a banner.
+The uCollect map pin as a pure presentation component, for JS/React and Flutter. It works like an avatar component: you pass props in and get pin artwork out. The package only draws. **The app and backend decide** which state a station is in, which banner it gets, its z-order, and how images are cached.
 
-- **Fill and icon belong to uCollect.** A partner can only set `frame`.
-- **Unknown values fall back.** An unrecognised `state` or `kind` draws as an available station, so a pin never disappears.
-
-## Install
+## Install (pin to a tag)
 
 ```bash
-# JS / React
-npm i github:noovoleum/ucollect-map-pin
+npm i github:noovoleum/ucollect-map-pin#v1.0.0
 ```
 
 ```yaml
-# Flutter — pubspec.yaml
 dependencies:
   noovoleum_map_pin:
-    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter }
+    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.0.0 }
 ```
 
-## Spec (mirrors the backend `pin` payload)
+## Props
 
-```json
-{ "state": "available|closed|planned|maintenance",
-  "kind":  "station|collection_point",
-  "frame": { "pattern": "solid|stripes|rings", "colors": ["#E31E24", "#FFD200"] },
-  "banner": "NEW|PROMO" }
-```
+| prop | JS type | Dart type | required | meaning |
+|---|---|---|---|---|
+| `state` | `'available' \| 'closed' \| 'planned' \| 'maintenance'` | `PinState` | yes | Head fill and badge. Non-available states are muted. |
+| `kind` | `'station' \| 'collection_point'` | `PinKind` (`station`, `collectionPoint`) | yes | Head icon: arrow or house. |
+| `frame` | `{ pattern, colors }` | `PinFrame(pattern:, colors:)` | no | Partner frame, drawn outside the head, 7u wide. |
+| `frame.pattern` | `'solid' \| 'stripes' \| 'rings'` | `FramePattern` | | |
+| `frame.colors` | `string[]` | `List<String>` | | Up to 3 `#RRGGBB` colours. Any other colour is skipped, and with zero valid colours there is no frame. |
+| `banner` | `'soon' \| 'new' \| 'promo'` | `PinBanner` (`soon`, `new_`, `promo`) | no | Pill drawn low on the pin. The pole tip stays visible. |
+| `size` | `number` | `double` | no | Height in px/dp of an unframed pin, from pole tip to head tip. Default 34, which is 1.15× the shipped `ucoflag.png` head. Clamped to 8..512. |
+| `aria-label` (React) / `semanticsLabel` (Flutter) | `string` | `String?` | no | Accessible name. If omitted, the pin is decorative (`aria-hidden` / excluded from semantics). |
+| `pixelRatio` (`pinPng` only) | | `double` | no | Raster scale, (0, 8]. PNG size = logical size × ratio, rounded. |
 
-All fields are optional.
-- A frame draws at most 3 colours.
-- `NEW` and `PROMO` show only on available pins.
-- Planned pins always show `SOON`.
+Fixed by design (not props): fills, opacity, icons, badges, frame width, and banner geometry.
+- `closed` shows a clock badge.
+- `maintenance` shows an X badge and keeps the kind icon.
+- The canvas is cropped to the artwork. **Its bottom edge is the pole tip**, so anchor at `bottom`.
 
-## JS
+Errors: an unknown enum value or a NaN size throws `TypeError` (JS) or `ArgumentError` (Dart). Because the API is typed, this is a programming error.
+
+## What the app decides
+
+| concern | owner | notes |
+|---|---|---|
+| backend `status` → `state` | app | e.g. `active→available`, `offline→maintenance`. Choose what an unknown status shows; the package will not guess. |
+| `kind` | app/backend | |
+| which `banner` to show | app/backend | e.g. `soon` for planned, `new`/`promo` only for available. |
+| partner `frame` | backend | Validate colours at write time too. |
+| z-order / symbol sort key | app | e.g. available above closed above maintenance above planned. |
+| image cache key | app | Include every prop, `size`, `pixelRatio` **and the package version**. |
+| accessible label text | app | Localised. |
+
+## MapLibre GL JS
 
 ```js
-import { pinSvg, pinImageKey, pinZ } from '@noovoleum/map-pin';
-import { MapPin, pinDataUrl } from '@noovoleum/map-pin/react';
+import { pinSvg } from '@noovoleum/map-pin';
 
-<MapPin state="closed" frame={{ pattern: 'rings', colors: ['#E31E24', '#FFFFFF', '#005DAA'] }} size={40} />
+// App-owned mapping: the package never sees backend strings.
+const STATE = { active: 'available', closed: 'closed', planned: 'planned', maintenance: 'maintenance', offline: 'maintenance' };
+const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
+const VERSION = '1.0.0';
 
-// MapLibre GL JS: register each distinct look once
-const key = pinImageKey(spec);
-if (!map.hasImage(key)) {
-  const img = new Image(); img.src = pinDataUrl(spec, { size: 40 * devicePixelRatio });
-  await img.decode(); map.addImage(key, img, { pixelRatio: devicePixelRatio });
+async function ensurePin(map, box) {
+  const props = { state: STATE[box.status] ?? 'maintenance', kind: box.kind ?? 'station',
+                  frame: box.pin?.frame ?? null, banner: box.status === 'planned' ? 'soon' : null, size: 34 };
+  const key = `pin:${VERSION}:${JSON.stringify(props)}`;
+  if (!map.hasImage(key)) {
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvg({ ...props, size: props.size * devicePixelRatio }));
+    await img.decode();
+    if (!map.hasImage(key)) map.addImage(key, img, { pixelRatio: devicePixelRatio });
+  }
+  return { key, z: Z[props.state] };   // feature properties
 }
-// layer: 'icon-image': ['get', 'pinKey'], 'icon-anchor': 'bottom', 'symbol-sort-key': ['get', 'pinZ']
+// layer: 'icon-image': ['get', 'key'], 'icon-anchor': 'bottom', 'symbol-sort-key': ['-', 0, ['get', 'z']]
 ```
 
-## Flutter
+React (lists, legends, detail sheets):
+
+```jsx
+import { MapPin } from '@noovoleum/map-pin/react';
+<MapPin state="closed" kind="collection_point" aria-label="Closed collection point" />
+```
+
+## Flutter (maplibre_gl)
 
 ```dart
 import 'package:noovoleum_map_pin/flutter_map_pin.dart';
 
-MapPin(spec: PinSpec(state: 'closed', frame: PinFrame('stripes', ['#E31E24', '#FFD200'])));
+// App-owned mapping.
+PinState stateOf(String status) => switch (status) {
+      'active' => PinState.available,
+      'closed' => PinState.closed,
+      'planned' => PinState.planned,
+      _ => PinState.maintenance,
+    };
+const zOf = {PinState.available: 4, PinState.closed: 3, PinState.maintenance: 2, PinState.planned: 1};
 
-// maplibre_gl: one addImage per distinct look
-final key = pinImageKey(spec);
-await controller.addImage(key, await pinPng(spec, pixelRatio: MediaQuery.devicePixelRatioOf(context)));
-controller.addSymbol(SymbolOptions(geometry: latLng, iconImage: key, iconAnchor: 'bottom', zIndex: pinZ(spec)));
+Future<void> addBox(MapLibreMapController c, Box box, double dpr, Set<String> registered) async {
+  final state = stateOf(box.status);
+  final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
+  final banner = state == PinState.planned ? PinBanner.soon : null;
+  final key = 'pin:1.0.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
+  if (registered.add(key)) {
+    await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner, frame: box.frame, size: 34, pixelRatio: dpr));
+  }
+  await c.addSymbol(SymbolOptions(geometry: box.latLng, iconImage: key, iconAnchor: 'bottom', zIndex: zOf[state]));
+}
 ```
 
-`lib/map_pin.dart` is pure Dart, with no Flutter import, so a Dart backend can use it too.
+maplibre_gl decodes PNGs differently on Android and iOS: Android uses bitmap density and iOS uses `UIScreen.scale`. Check the on-map size once on each platform before you pick `pixelRatio`.
 
-## Options (approved defaults)
+Widget: `MapPin(state: PinState.closed, kind: PinKind.station, semanticsLabel: 'Closed station')`. `lib/map_pin.dart` (`pinSvg`) is pure Dart, with no Flutter import.
 
-| option | default | tested |
-|---|---|---|
-| `size` | 40 | on-screen px of an unframed pin canvas |
-| `frameWidth` | 5 | 3–7 |
-| `bannerPosition` / `bannerScale` | `low` / 1.5 | mid, low × 1.0–1.5 |
-| `badgePosition` / `badgeRadius` | `top-left` / 10 | top-left, top-right × 8–12 |
+## Development
 
-## Keeping JS and Dart identical
-
-`node verify.mjs` does two things:
-1. Checks the rules.
-2. Writes `fixtures/` (39 cases).
-
-`cd flutter && flutter test` then checks that Dart produces **exactly the same bytes** as each fixture, plus the image key and z-order. To change the design:
-1. Edit `index.js`.
-2. Run verify.
-3. Port the change to `flutter/lib/map_pin.dart` until the Flutter tests pass again.
+- `node verify.mjs` checks the safety rules and compares every output byte-for-byte with the committed `fixtures/`. It fails on any difference.
+- `node verify.mjs --update` rewrites the fixtures. Review the diff: changed pixels require a minor release (see CHANGELOG).
+- `cd flutter && flutter test` checks that Dart reproduces the same fixtures byte-for-byte and that PNG sizes are correct.
+- `dev/glyphs.mjs` regenerates the banner label paths. `dev/typecheck.mjs` compiles a TS consumer against the installed React types.
+- CI (`.github/workflows/ci.yml`) runs all of the above.
