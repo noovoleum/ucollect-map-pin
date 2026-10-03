@@ -1,54 +1,49 @@
-// Generates fixtures/ (the cross-language contract) and asserts the JS rules.
-// Run: node verify.mjs            (writes fixtures, exits non-zero on any failure)
+// Fixture oracle. `node verify.mjs` fails if any output differs from the committed fixtures/.
+// `node verify.mjs --update` rewrites them (review the diff: changed pixels = minor release).
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { pinSvg, pinImageKey, pinZ, resolvePin, STATES, KINDS } from './index.js';
+import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs';
+import { pinSvg, STATES, KINDS, FRAME_PATTERNS, BANNERS } from './index.js';
 
-const FRAMES = {
-  none: null,
-  alfamart: { pattern: 'stripes', colors: ['#E31E24', '#FFD200'] },
-  pertamina: { pattern: 'rings', colors: ['#E31E24', '#FFFFFF', '#005DAA'] },
-  gold: { pattern: 'solid', colors: ['#D4A017'] },
-};
+const COLS = ['#E31E24', '#FFD200', '#005DAA'];
 const cases = [];
-for (const state of Object.keys(STATES))
-  for (const kind of Object.keys(KINDS))
-    for (const [fn, frame] of Object.entries(FRAMES))
-      cases.push({ name: `${state}-${kind}-${fn}`, spec: { state, kind, frame } });
+for (const state of STATES) for (const kind of KINDS) for (const banner of [null, ...BANNERS])
+  cases.push({ name: `${state}-${kind}-${banner ?? 'plain'}`, props: { state, kind, banner } });
+for (const pattern of FRAME_PATTERNS) for (const n of [1, 2, 3])
+  cases.push({ name: `frame-${pattern}-${n}`, props: { state: 'available', kind: 'station', frame: { pattern, colors: COLS.slice(0, n) } } });
 cases.push(
-  { name: 'promo', spec: { state: 'available', frame: FRAMES.alfamart, banner: 'PROMO' } },
-  { name: 'new-cp', spec: { kind: 'collection_point', banner: 'NEW' } },
-  { name: 'fw3-size64', spec: { state: 'closed', frame: FRAMES.pertamina }, options: { frameWidth: 3, size: 64 } },
-  { name: 'fw7-mid-topright', spec: { state: 'planned', frame: FRAMES.alfamart }, options: { frameWidth: 7, bannerPosition: 'mid', bannerScale: 1.25, badgePosition: 'top-right', badgeRadius: 12 } },
-  { name: 'unknown-state', spec: { state: 'exploded', kind: 'spaceship' } },
-  { name: 'bad-frame', spec: { frame: { pattern: 'plaid', colors: [] } } },
-  { name: 'five-colours', spec: { frame: { pattern: 'stripes', colors: ['#111111', '#222222', '#333333', '#444444', '#555555'] } } },
+  { name: 'closed-cp-stripes-3-promo', props: { state: 'closed', kind: 'collection_point', frame: { pattern: 'stripes', colors: COLS }, banner: 'promo' } },
+  { name: 'size-37_5', props: { state: 'maintenance', kind: 'station', frame: { pattern: 'rings', colors: COLS.slice(0, 2) }, size: 37.5 } },
+  { name: 'invalid-colours', props: { state: 'available', kind: 'station', frame: { pattern: 'rings', colors: ['red', '#abc', '#e31e24', '"/><script>', '#12345G', '#005daa', '#111111', '#222222'] } } },
+  { name: 'no-valid-colours', props: { state: 'available', kind: 'station', frame: { pattern: 'solid', colors: ['url(javascript:x)', 42, null] } } },
 );
 
-// rules
-for (const c of cases) {
-  const p = resolvePin(c.spec);
-  assert.ok(p.fill && p.icon, c.name);                                       // never vanishes
-  if (p.state !== 'available') assert.ok(p.opacity < 1 && [null, 'SOON'].includes(p.banner), c.name);
-}
-assert.equal(resolvePin({ state: 'exploded' }).state, 'available');
-assert.equal(resolvePin({ frame: { pattern: 'plaid', colors: ['#000'] } }).frame, null);
-assert.equal(resolvePin({ state: 'closed', banner: 'PROMO' }).banner, null);  // promo only on available
-assert.equal(resolvePin({ state: 'planned', banner: 'NEW' }).banner, 'SOON');
-assert.equal(resolvePin({ state: 'maintenance', kind: 'collection_point' }).icon, 'x');
-assert.equal(resolvePin({ kind: 'collection_point', frame: FRAMES.alfamart }).fill, '#7C4DAF'); // partner can't recolour
-const five = pinSvg(cases.find((c) => c.name === 'five-colours').spec);
-assert.ok(five.includes('#333333') && !five.includes('#444444'), 'max 3 frame colours');
-const svg = pinSvg({ frame: FRAMES.alfamart });
-assert.ok(svg.indexOf('clipPath') < svg.indexOf('#384240') && svg.indexOf('#384240') < svg.indexOf('#70AD47'), 'paint order frame<pole<head');
-assert.ok(pinZ({ state: 'available' }) > pinZ({ state: 'closed' }) && pinZ({ state: 'maintenance' }) > pinZ({ state: 'planned' }));
+// Safety rules (programming errors throw; hostile colours never reach the markup).
+for (const bad of [{ state: 'toString', kind: 'station' }, { state: '__proto__', kind: 'station' }, { state: 'available', kind: 'constructor' },
+  { state: 'available', kind: 'station', banner: 'NEW' }, { state: 'available', kind: 'station', size: NaN },
+  { state: 'available', kind: 'station', size: '40' }, { state: 'available', kind: 'station', frame: { pattern: 'plaid', colors: COLS } },
+  { state: 'available', kind: 'station', frame: { pattern: 'hasOwnProperty', colors: COLS } }, {}])
+  assert.throws(() => pinSvg(bad), TypeError, JSON.stringify(bad));
+const inv = pinSvg(cases.find((c) => c.name === 'invalid-colours').props);
+assert.ok(!/script|red"|#abc"|#12345G/.test(inv) && inv.includes('#e31e24') && inv.includes('#005daa') && inv.includes('#111111') && !inv.includes('#222222'));
+assert.ok(!pinSvg(cases.find((c) => c.name === 'no-valid-colours').props).includes('1f2328'), 'zero valid colours => no frame');
+assert.ok(!/\bid=|url\(#/.test(cases.map((c) => pinSvg(c.props)).join('')), 'no ids => nothing to collide inline');
+assert.ok(pinSvg({ state: 'available', kind: 'station', size: 1e9 }).includes('height="512.00"'), 'size clamped');
+for (const t of [STATES, KINDS, FRAME_PATTERNS, BANNERS]) assert.ok(Object.isFrozen(t));
 
-mkdirSync('fixtures', { recursive: true });
+const update = process.argv.includes('--update');
+if (update) { rmSync('fixtures', { recursive: true, force: true }); mkdirSync('fixtures'); }
+const bad = [];
 for (const c of cases) {
-  c.key = pinImageKey(c.spec, c.options);
-  c.z = pinZ(c.spec);
-  writeFileSync(`fixtures/${c.name}.svg`, pinSvg(c.spec, c.options));
+  const svg = pinSvg(c.props), file = `fixtures/${c.name}.svg`;
+  if (update) writeFileSync(file, svg);
+  else if (readFileSync(file, 'utf8') !== svg) bad.push(c.name);
 }
-writeFileSync('fixtures/cases.json', JSON.stringify(cases, null, 1));
-assert.equal(new Set(cases.map((c) => c.key)).size >= 34, true, 'image keys distinguish looks');
-console.log(`ok: ${cases.length} fixtures, rules pass`);
+const json = JSON.stringify(cases, null, 1) + '\n';
+if (update) writeFileSync('fixtures/cases.json', json);
+else {
+  if (readFileSync('fixtures/cases.json', 'utf8') !== json) bad.push('cases.json');
+  const extra = readdirSync('fixtures').filter((f) => f !== 'cases.json' && !cases.some((c) => `${c.name}.svg` === f));
+  bad.push(...extra.map((f) => `stale ${f}`));
+}
+assert.deepEqual(bad, [], 'output differs from committed fixtures (run with --update and review the diff)');
+console.log(`ok: ${cases.length} fixtures ${update ? 'written' : 'match'}, safety rules pass`);
