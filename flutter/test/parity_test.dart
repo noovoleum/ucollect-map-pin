@@ -1,38 +1,66 @@
-// Parity: Dart must emit the exact bytes the JS package emits for every fixture case.
+// Oracle = the committed ../fixtures (written by `node verify.mjs --update`, reviewed in git).
+// Monorepo-only test: it reads fixtures from the repository root.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:noovoleum_map_pin/flutter_map_pin.dart';
 
-void main() {
-  final dir = Directory('../fixtures');
-  final cases = (jsonDecode(File('${dir.path}/cases.json').readAsStringSync()) as List).cast<Map<String, dynamic>>();
+T _enum<T extends Enum>(List<T> values, String wire) => values.byName(wire == 'collection_point'
+    ? 'collectionPoint'
+    : wire == 'new'
+        ? 'new_'
+        : wire);
 
-  test('fixture set is non-trivial', () => expect(cases.length, greaterThan(30)));
+void main() {
+  final cases = (jsonDecode(File('../fixtures/cases.json').readAsStringSync()) as List).cast<Map<String, dynamic>>();
+
+  test('fixture set covers the matrix', () => expect(cases.length, 45));
 
   for (final c in cases) {
     test('parity ${c['name']}', () {
-      final o = (c['options'] as Map?)?.cast<String, dynamic>() ?? {};
-      final opts = PinOptions(
-        size: (o['size'] as num? ?? 40).toDouble(),
-        frameWidth: (o['frameWidth'] as num? ?? 5).toDouble(),
-        bannerPosition: o['bannerPosition'] as String? ?? 'low',
-        bannerScale: (o['bannerScale'] as num? ?? 1.5).toDouble(),
-        badgePosition: o['badgePosition'] as String? ?? 'top-left',
-        badgeRadius: (o['badgeRadius'] as num? ?? 10).toDouble(),
+      final p = c['props'] as Map<String, dynamic>;
+      final fr = p['frame'] as Map<String, dynamic>?;
+      final svg = pinSvg(
+        state: _enum(PinState.values, p['state'] as String),
+        kind: _enum(PinKind.values, p['kind'] as String),
+        banner: p['banner'] == null ? null : _enum(PinBanner.values, p['banner'] as String),
+        frame: fr == null
+            ? null
+            : PinFrame(
+                pattern: _enum(FramePattern.values, fr['pattern'] as String),
+                colors: [for (final x in fr['colors'] as List) if (x is String) x]),
+        size: (p['size'] as num? ?? 34).toDouble(),
       );
-      final spec = PinSpec.fromJson((c['spec'] as Map).cast<String, dynamic>());
-      expect(pinSvg(spec, opts), File('${dir.path}/${c['name']}.svg').readAsStringSync());
-      expect(pinImageKey(spec, opts), c['key']);
-      expect(pinZ(spec), c['z']);
+      expect(svg, File('../fixtures/${c['name']}.svg').readAsStringSync());
     });
   }
 
-  testWidgets('pinPng renders a non-empty PNG', (t) async {
-    final bytes = await t.runAsync(() => pinPng(const PinSpec(state: 'closed',
-        frame: PinFrame('stripes', ['#E31E24', '#FFD200'])), pixelRatio: 2));
-    expect(bytes!.sublist(1, 4), utf8.encode('PNG'));
-    expect(bytes.length, greaterThan(500));
+  test('NaN size throws', () {
+    expect(() => pinSvg(state: PinState.available, kind: PinKind.station, size: double.nan), throwsArgumentError);
+  });
+
+  // Unframed available station: 56u wide, 88.5u tall => size 40 is 25.31 x 40 dp.
+  for (final (size, ratio, w, h) in [(40.0, 1.0, 25, 40), (40.0, 3.0, 76, 120), (80.0, 1.0, 51, 80), (80.0, 3.0, 152, 240)]) {
+    testWidgets('pinPng size $size ratio $ratio is ${w}x$h', (t) async {
+      final bytes = await t.runAsync(
+          () => pinPng(state: PinState.available, kind: PinKind.station, size: size, pixelRatio: ratio));
+      final hdr = ByteData.sublistView(bytes!, 16, 24);
+      expect(utf8.decode(bytes.sublist(1, 4)), 'PNG');
+      expect([hdr.getUint32(0), hdr.getUint32(4)], [w, h]);
+    });
+  }
+
+  testWidgets('pinPng rejects a bad pixelRatio before allocating', (t) async {
+    Object? err;
+    await t.runAsync(() async {
+      try {
+        await pinPng(state: PinState.closed, kind: PinKind.station, pixelRatio: 0);
+      } catch (e) {
+        err = e;
+      }
+    });
+    expect(err, isArgumentError);
   });
 }
