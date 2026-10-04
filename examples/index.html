@@ -1,0 +1,171 @@
+<!doctype html>
+<!--
+  @noovoleum/map-pin: single-page example. No build step and no install.
+  Run from the repo root:  python3 -m http.server 8000  →  http://localhost:8000/examples/
+  (ES modules don't load over file://.)
+  In your own app, replace '../index.js' with '@noovoleum/map-pin'.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@noovoleum/map-pin: example</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; color: #1f2328; background: #fafaf7; }
+  h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 32px 0 8px; }
+  p { margin: 4px 0 12px; color: #57606a; max-width: 760px; }
+  code { background: #eef0ee; padding: 1px 5px; border-radius: 4px; }
+  pre { background: #1f2328; color: #e6edf3; padding: 12px 14px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; max-width: 760px; }
+  .grid { display: grid; grid-template-columns: 120px repeat(4, 96px); gap: 6px; align-items: end; }
+  .grid div { text-align: center; font-size: 12px; color: #57606a; }
+  .grid .row { text-align: left; align-self: center; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  #map { width: 100%; max-width: 760px; height: 420px; border-radius: 8px; }
+  .play { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .play label { display: block; font-size: 12px; color: #57606a; }
+  #out { min-width: 140px; min-height: 140px; display: grid; place-items: center; background: #fff; border-radius: 8px; border: 1px solid #d0d7de; }
+</style>
+</head>
+<body>
+<h1>@noovoleum/map-pin</h1>
+<p>Pass props in and get pin artwork back, like an avatar component. The package only draws. Your app decides which state, banner and frame each station gets.</p>
+
+<h2>1 · Inline SVG</h2>
+<pre>import { pinSvg } from '@noovoleum/map-pin';
+el.innerHTML = pinSvg({ state: 'available', kind: 'station', size: 48 });</pre>
+<div class="grid" id="grid"></div>
+
+<h2>2 · Partner frames</h2>
+<pre>pinSvg({ state: 'available', kind: 'station', size: 48,
+         frame: { pattern: 'stripes', colors: ['#E31E24', '#FFD200'] } })</pre>
+<div class="grid" id="frames"></div>
+
+<h2>3 · Playground</h2>
+<div class="play">
+  <div>
+    <label>state <select id="p-state"></select></label>
+    <label>kind <select id="p-kind"></select></label>
+    <label>banner <select id="p-banner"></select></label>
+    <label>frame <select id="p-pattern"></select></label>
+    <label>colours <input id="p-colors" value="#E31E24,#FFD200,#005DAA" size="24"></label>
+    <label>size <input id="p-size" type="range" min="24" max="120" value="72"></label>
+  </div>
+  <div id="out"></div>
+  <pre id="code" style="flex:1;min-width:280px"></pre>
+</div>
+
+<h2>4 · MapLibre GL JS</h2>
+<p>The app maps the backend <code>status</code> to a pin state, picks the banner, and names each image after everything that changes its pixels. The package itself contains none of that logic.</p>
+<pre>const STATE = new Map([['active','available'],['available','available'],['closed','closed'],['planned','planned']]);
+const toState = (status) => STATE.get(status) ?? 'maintenance';   // anything unknown means "doesn't work"
+const key = (p, dpr) => ['pin', p.state, p.kind, p.banner ?? '-', p.frame?.pattern ?? '-',
+                         (p.frame?.colors ?? []).join('.'), p.size, dpr].join('|');</pre>
+<div id="map"></div>
+
+<script type="module">
+import { pinSvg, STATES, KINDS, BANNERS, FRAME_PATTERNS } from '../index.js';
+
+// ── 1 · state × kind grid ────────────────────────────────────────────
+const grid = document.getElementById('grid');
+grid.innerHTML = '<div></div>' + STATES.map(s => `<div>${s}</div>`).join('');
+for (const kind of KINDS) {
+  grid.insertAdjacentHTML('beforeend', `<div class="row">${kind}</div>`);
+  for (const state of STATES) {
+    const banner = state === 'planned' ? 'soon' : null;   // app rule, not the package's
+    grid.insertAdjacentHTML('beforeend', `<div class="cell">${pinSvg({ state, kind, banner, size: 48 })}</div>`);
+  }
+}
+
+// ── 2 · frames ───────────────────────────────────────────────────────
+const PARTNERS = [
+  ['Alfamart', { pattern: 'stripes', colors: ['#E31E24', '#FFD200'] }],
+  ['Pertamina', { pattern: 'rings', colors: ['#E31E24', '#005DAA'] }],
+  ['solid', { pattern: 'solid', colors: ['#7C4DAF'] }],
+  ['3 colours', { pattern: 'stripes', colors: ['#E31E24', '#FFD200', '#005DAA'] }],
+];
+const frames = document.getElementById('frames');
+frames.innerHTML = '<div></div>' + PARTNERS.map(([n]) => `<div>${n}</div>`).join('');
+for (const state of ['available', 'closed']) {
+  frames.insertAdjacentHTML('beforeend', `<div class="row">${state}</div>`);
+  for (const [, frame] of PARTNERS)
+    frames.insertAdjacentHTML('beforeend', `<div class="cell">${pinSvg({ state, kind: 'station', frame, size: 48 })}</div>`);
+}
+
+// ── 3 · playground ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fill = (id, opts) => $(id).innerHTML = opts.map(o => `<option>${o}</option>`).join('');
+fill('p-state', STATES); fill('p-kind', KINDS); fill('p-banner', ['none', ...BANNERS]); fill('p-pattern', ['none', ...FRAME_PATTERNS]);
+function render() {
+  const pattern = $('p-pattern').value, banner = $('p-banner').value;
+  const props = {
+    state: $('p-state').value, kind: $('p-kind').value, size: +$('p-size').value,
+    banner: banner === 'none' ? null : banner,
+    frame: pattern === 'none' ? null : { pattern, colors: $('p-colors').value.split(',').map(s => s.trim()) },
+  };
+  $('out').innerHTML = pinSvg(props);   // invalid colours are skipped, never injected
+  $('code').textContent = `pinSvg(${JSON.stringify(props, null, 2)})`;
+}
+document.querySelectorAll('.play select, .play input').forEach(el => el.addEventListener('input', render));
+render();
+
+// ── 4 · MapLibre GL JS ───────────────────────────────────────────────
+const STATE = new Map([['active', 'available'], ['available', 'available'], ['closed', 'closed'], ['planned', 'planned']]);
+const toState = (status) => STATE.get(status) ?? 'maintenance';
+const key = (p, dpr) => ['pin', p.state, p.kind, p.banner ?? '-', p.frame?.pattern ?? '-',
+  (p.frame?.colors ?? []).join('.'), p.size, dpr].join('|');
+
+// Sample backend rows: existing `status` plus the optional `pin` field.
+const boxes = [
+  { name: 'Kuningan City',  lng: 106.8290, lat: -6.2297, status: 'active' },
+  { name: 'Alfamart Setiabudi', lng: 106.8262, lat: -6.2276, status: 'active',
+    pin: { frame: { pattern: 'stripes', colors: ['#E31E24', '#FFD200'] }, banner: 'promo' } },
+  { name: 'Pertamina Rasuna', lng: 106.8323, lat: -6.2272, status: 'closed',
+    pin: { frame: { pattern: 'rings', colors: ['#E31E24', '#005DAA'] } } },
+  { name: 'Collection point Menteng', lng: 106.8251, lat: -6.2321, status: 'active', pin: { kind: 'collection_point', banner: 'new' } },
+  { name: 'Mall Ambassador', lng: 106.8318, lat: -6.2330, status: 'offline' },    // unknown → maintenance
+  { name: 'Epicentrum', lng: 106.8352, lat: -6.2305, status: 'planned' },
+];
+
+const map = new maplibregl.Map({
+  container: 'map', center: [106.8295, -6.2300], zoom: 15.3,
+  style: { version: 8, sources: { osm: { type: 'raster', tileSize: 256, attribution: '© OpenStreetMap',
+           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'] } },
+           layers: [{ id: 'osm', type: 'raster', source: 'osm' }] },
+});
+
+function svgToImage(svg) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img); img.onerror = reject;
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+}
+
+map.on('load', async () => {
+  const dpr = window.devicePixelRatio || 1;
+  const features = [];
+  for (const b of boxes) {
+    const kind = b.pin?.kind === 'collection_point' ? 'collection_point' : 'station';
+    const state = toState(b.status);
+    const banner = state === 'planned' ? 'soon' : state === 'available' ? b.pin?.banner ?? null : null;
+    const props = { state, kind, banner, frame: b.pin?.frame ?? null, size: 40 };
+    const id = key(props, dpr);
+    if (!map.hasImage(id)) {
+      const img = await svgToImage(pinSvg({ ...props, size: props.size * dpr }));   // rasterise at device pixels
+      if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: dpr });
+    }
+    const z = { available: 3, closed: 2, maintenance: 1, planned: 0 }[state];   // app's stacking order
+    features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [b.lng, b.lat] },
+                    properties: { icon: id, z, name: b.name } });
+  }
+  map.addSource('boxes', { type: 'geojson', data: { type: 'FeatureCollection', features } });
+  map.addLayer({ id: 'boxes', type: 'symbol', source: 'boxes',
+    layout: { 'icon-image': ['get', 'icon'], 'icon-anchor': 'bottom', 'icon-allow-overlap': true,
+              'symbol-sort-key': ['get', 'z'] } });
+  map.on('click', 'boxes', e => new maplibregl.Popup().setLngLat(e.lngLat).setText(e.features[0].properties.name).addTo(map));
+});
+</script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+</body>
+</html>

@@ -129,3 +129,7 @@ Widget: `MapPin(state: PinState.closed, kind: PinKind.station, semanticsLabel: '
 - `cd flutter && flutter test` checks that Dart reproduces the same fixtures byte-for-byte and that PNG sizes are correct.
 - `dev/glyphs.mjs` regenerates the banner label paths. `dev/typecheck.mjs` compiles a TS consumer against the installed React types.
 - CI (`.github/workflows/ci.yml`) runs all of the above.
+
+## Example
+
+`examples/index.html` is a single page with no build step: an inline SVG grid, partner frames, a playground, and a MapLibre GL JS map. Run `python3 -m http.server 8000` in the repo root and open http://localhost:8000/examples/.

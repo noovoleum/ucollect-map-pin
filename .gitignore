@@ -4,3 +4,4 @@ flutter/build/
 flutter/pubspec.lock
 flutter/.flutter-plugins*
 _sheet/
+examples/_*.png
