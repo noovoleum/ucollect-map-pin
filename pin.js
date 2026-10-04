@@ -46,13 +46,18 @@ function head(g) {
 
 function frameEls(frame, fw) {
   if (frame == null) return [];
-  if (typeof frame !== 'object' || !Array.isArray(frame.colors)) throw new TypeError('map-pin: frame must be {pattern, colors[]}');
-  pick(PATTERN, frame.pattern, 'frame pattern');
-  // The only strings that ever reach the SVG: #RRGGBB colours. Anything else is not drawn.
-  const cols = frame.colors.filter((c) => typeof c === 'string' && HEX.test(c)).slice(0, 3), n = cols.length;
+  if (typeof frame !== 'object') throw new TypeError('map-pin: frame must be {pattern, colors[]}');
+  // Read each caller field once and never call methods on caller objects (they may be overridden).
+  const pattern = frame.pattern, colors = frame.colors;
+  if (!Array.isArray(colors)) throw new TypeError('map-pin: frame must be {pattern, colors[]}');
+  pick(PATTERN, pattern, 'frame pattern');
+  // Inspect the first 3 entries; only #RRGGBB primitive strings reach the SVG, anything else is skipped.
+  const cols = [], len = Math.min(colors.length, 3);
+  for (let i = 0; i < len; i++) { const c = colors[i]; if (typeof c === 'string' && HEX.test(c)) cols[cols.length] = c; }
+  const n = cols.length;
   if (!n) return [];
   const out = [el('path', { d: head(SEP + fw + 1).d, fill: '#1f2328', 'fill-opacity': '0.35' })];
-  if (frame.pattern === 'stripes') {
+  if (pattern === 'stripes') {
     // One dashed band per colour, back to front: no clipPath, so no ids to collide.
     const mid = head(SEP + fw / 2), m = n * Math.max(1, Math.round(mid.len / (n * 6))), w = mid.len / m;
     for (let j = n - 1; j >= 0; j--) {
@@ -61,7 +66,7 @@ function frameEls(frame, fw) {
       out.push(el('path', a));
     }
   } else {
-    const rings = frame.pattern === 'rings' ? n : 1;
+    const rings = pattern === 'rings' ? n : 1;
     for (let k = 0; k < rings; k++) out.push(el('path', { d: head(SEP + fw * (rings - k) / rings).d, fill: cols[k] }));
   }
   out.push(el('path', { d: head(SEP).d, fill: '#fff' }));

@@ -10,7 +10,7 @@ enum FramePattern { solid, stripes, rings }
 /// `new_` because `new` is a Dart keyword; it draws the NEW banner.
 enum PinBanner { soon, new_, promo }
 
-/// Partner frame. Up to 3 `#RRGGBB` colours are drawn; any other colour string is skipped.
+/// Partner frame. Only the first 3 entries are read; each must be a `#RRGGBB` string or it is skipped.
 class PinFrame {
   final FramePattern pattern;
   final List<String> colors;
@@ -47,18 +47,23 @@ String _f(num n, [int d = 3]) => n.toStringAsFixed(d);
 
 List<String> _frame(PinFrame? frame, double fw) {
   if (frame == null) return const [];
-  // The only strings that ever reach the SVG: #RRGGBB colours.
-  final cols = frame.colors.where(_hex.hasMatch).take(3).toList(), n = cols.length;
+  // Inspect the first 3 entries by index (no caller methods); only #RRGGBB strings reach the SVG.
+  final colors = frame.colors, pattern = frame.pattern, cols = <String>[];
+  for (var i = 0; i < math.min(colors.length, 3); i++) {
+    final c = colors[i];
+    if (_hex.hasMatch(c)) cols.add(c);
+  }
+  final n = cols.length;
   if (n == 0) return const [];
   final out = ['<path d="${_head(_sep + fw + 1).d}" fill="#1f2328" fill-opacity="0.35"/>'];
-  if (frame.pattern == FramePattern.stripes) {
+  if (pattern == FramePattern.stripes) {
     final mid = _head(_sep + fw / 2), m = n * math.max(1, (mid.len / (n * 6)).round()), w = mid.len / m;
     for (var j = n - 1; j >= 0; j--) {
       final dash = j < n - 1 ? ' stroke-dasharray="${_f((j + 1) * w)} ${_f((n - 1 - j) * w)}"' : '';
       out.add('<path d="${mid.d}" fill="none" stroke="${cols[j]}" stroke-width="${_f(fw, 1)}"$dash/>');
     }
   } else {
-    final rings = frame.pattern == FramePattern.rings ? n : 1;
+    final rings = pattern == FramePattern.rings ? n : 1;
     for (var k = 0; k < rings; k++) {
       out.add('<path d="${_head(_sep + fw * (rings - k) / rings).d}" fill="${cols[k]}"/>');
     }

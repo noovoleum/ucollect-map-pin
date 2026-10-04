@@ -3,7 +3,7 @@ export type PinKind = 'station' | 'collection_point';
 export type FramePattern = 'solid' | 'stripes' | 'rings';
 export type PinBanner = 'soon' | 'new' | 'promo';
 
-/** Partner frame. Up to 3 `#RRGGBB` colours; any other colour string is not drawn. */
+/** Partner frame. Only the first 3 entries are read; each must be a `#RRGGBB` string or it is skipped. */
 export interface PinFrame {
   readonly pattern: FramePattern;
   readonly colors: readonly string[];

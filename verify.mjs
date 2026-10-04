@@ -24,7 +24,16 @@ for (const bad of [{ state: 'toString', kind: 'station' }, { state: '__proto__',
   { state: 'available', kind: 'station', frame: { pattern: 'hasOwnProperty', colors: COLS } }, {}])
   assert.throws(() => pinSvg(bad), TypeError, JSON.stringify(bad));
 const inv = pinSvg(cases.find((c) => c.name === 'invalid-colours').props);
-assert.ok(!/script|red"|#abc"|#12345G/.test(inv) && inv.includes('#e31e24') && inv.includes('#005daa') && inv.includes('#111111') && !inv.includes('#222222'));
+assert.ok(!/script|red"|#abc"|#12345G/.test(inv) && inv.includes('#e31e24') && !inv.includes('#005daa'), 'only the first 3 entries are inspected');
+// R2-H01: caller-overridden methods and getters must not reach the SVG.
+const evil = ['#FFFFFF']; evil.filter = () => ['"/><image onerror="sentinel"/><!--']; evil.slice = evil.filter;
+assert.ok(!pinSvg({ state: 'available', kind: 'station', frame: { pattern: 'solid', colors: evil } }).includes('onerror'), 'overridden filter');
+let reads = 0;
+pinSvg({ state: 'available', kind: 'station', frame: { get pattern() { reads++; return 'rings'; }, get colors() { reads++; return ['#AABBCC']; } } });
+assert.equal(reads, 2, 'frame.pattern and frame.colors read exactly once each');
+let flip = 0;
+const sneaky = ['#AABBCC']; Object.defineProperty(sneaky, 0, { get: () => (flip++ ? '"/><image onerror="x"/>' : '#AABBCC') });
+assert.ok(!pinSvg({ state: 'available', kind: 'station', frame: { pattern: 'solid', colors: sneaky } }).includes('onerror'), 'element read once');
 assert.ok(!pinSvg(cases.find((c) => c.name === 'no-valid-colours').props).includes('1f2328'), 'zero valid colours => no frame');
 assert.ok(!/\bid=|url\(#/.test(cases.map((c) => pinSvg(c.props)).join('')), 'no ids => nothing to collide inline');
 assert.ok(pinSvg({ state: 'available', kind: 'station', size: 1e9 }).includes('height="512.00"'), 'size clamped');
