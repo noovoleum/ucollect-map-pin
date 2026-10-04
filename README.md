@@ -22,7 +22,7 @@ dependencies:
 | `kind` | `'station' \| 'collection_point'` | `PinKind` (`station`, `collectionPoint`) | yes | Head icon: arrow or house. |
 | `frame` | `{ pattern, colors }` | `PinFrame(pattern:, colors:)` | no | Partner frame, drawn outside the head, 7u wide. |
 | `frame.pattern` | `'solid' \| 'stripes' \| 'rings'` | `FramePattern` | | |
-| `frame.colors` | `string[]` | `List<String>` | | Up to 3 `#RRGGBB` colours. Any other colour is skipped, and with zero valid colours there is no frame. |
+| `frame.colors` | `string[]` | `List<String>` | | Only the first 3 entries are read. Each must be a `#RRGGBB` string; anything else is skipped, and with zero valid colours there is no frame. For 3 colours at small sizes (≤40), prefer `stripes`: 3 `rings` bands are about 1 px each. |
 | `banner` | `'soon' \| 'new' \| 'promo'` | `PinBanner` (`soon`, `new_`, `promo`) | no | Pill drawn low on the pin. The pole tip stays visible. |
 | `size` | `number` | `double` | no | Height in px/dp of an unframed pin, from pole tip to head tip. Default 34, which is 1.15× the shipped `ucoflag.png` head. Clamped to 8..512. |
 | `aria-label` (React) / `semanticsLabel` (Flutter) | `string` | `String?` | no | Accessible name. If omitted, the pin is decorative (`aria-hidden` / excluded from semantics). |
@@ -31,6 +31,7 @@ dependencies:
 Fixed by design (not props): fills, opacity, icons, badges, frame width, and banner geometry.
 - `closed` shows a clock badge.
 - `maintenance` shows an X badge and keeps the kind icon.
+- The status badge deliberately sits on top of the partner frame at the upper left: status wins over branding.
 - The canvas is cropped to the artwork. **Its bottom edge is the pole tip**, so anchor at `bottom`.
 
 Errors: an unknown enum value or a NaN size throws `TypeError` (JS) or `ArgumentError` (Dart). Because the API is typed, this is a programming error.
@@ -53,23 +54,26 @@ Errors: an unknown enum value or a NaN size throws `TypeError` (JS) or `Argument
 import { pinSvg } from '@noovoleum/map-pin';
 
 // App-owned mapping: the package never sees backend strings.
-const STATE = { active: 'available', closed: 'closed', planned: 'planned', maintenance: 'maintenance', offline: 'maintenance' };
+const STATE = new Map([['active', 'available'], ['closed', 'closed'], ['planned', 'planned'], ['maintenance', 'maintenance'], ['offline', 'maintenance']]);
 const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
 const VERSION = '1.0.0';
 
 async function ensurePin(map, box) {
-  const props = { state: STATE[box.status] ?? 'maintenance', kind: box.kind ?? 'station',
+  const props = { state: STATE.get(box.status) ?? 'maintenance',   // own entries only; unknown => maintenance
+                  kind: box.kind === 'collection_point' ? 'collection_point' : 'station',
                   frame: box.pin?.frame ?? null, banner: box.status === 'planned' ? 'soon' : null, size: 34 };
-  const key = `pin:${VERSION}:${JSON.stringify(props)}`;
+  const dpr = devicePixelRatio;                                    // read once: key, raster and addImage agree
+  const key = `pin:${VERSION}:${dpr}:${JSON.stringify(props)}`;
   if (!map.hasImage(key)) {
     const img = new Image();
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvg({ ...props, size: props.size * devicePixelRatio }));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvg({ ...props, size: props.size * dpr }));
     await img.decode();
-    if (!map.hasImage(key)) map.addImage(key, img, { pixelRatio: devicePixelRatio });
+    if (!map.hasImage(key)) map.addImage(key, img, { pixelRatio: dpr });
   }
   return { key, z: Z[props.state] };   // feature properties
 }
 // layer: 'icon-image': ['get', 'key'], 'icon-anchor': 'bottom', 'symbol-sort-key': ['-', 0, ['get', 'z']]
+// A style change drops images: call ensurePin again after 'style.load'. size x dpr is capped at 512 by the package.
 ```
 
 React (lists, legends, detail sheets):
@@ -93,13 +97,22 @@ PinState stateOf(String status) => switch (status) {
     };
 const zOf = {PinState.available: 4, PinState.closed: 3, PinState.maintenance: 2, PinState.planned: 1};
 
-Future<void> addBox(MapLibreMapController c, Box box, double dpr, Set<String> registered) async {
+// One in-flight/finished install per key. Clear it when the map style changes (images are dropped).
+final installs = <String, Future<void>>{};
+
+Future<void> addBox(MapLibreMapController c, Box box, double dpr) async {
   final state = stateOf(box.status);
   final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
   final banner = state == PinState.planned ? PinBanner.soon : null;
   final key = 'pin:1.0.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
-  if (registered.add(key)) {
+  final install = installs[key] ??= () async {
     await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner, frame: box.frame, size: 34, pixelRatio: dpr));
+  }();
+  try {
+    await install;                       // every caller waits for the same addImage
+  } catch (_) {
+    if (identical(installs[key], install)) installs.remove(key);  // failed: allow a retry
+    rethrow;
   }
   await c.addSymbol(SymbolOptions(geometry: box.latLng, iconImage: key, iconAnchor: 'bottom', zIndex: zOf[state]));
 }

@@ -6,12 +6,18 @@ JS (`package.json`) and Dart (`flutter/pubspec.yaml`) share one version and one 
 
 | change | bump |
 |---|---|
-| Add an enum value (state, kind, pattern, banner) | minor |
+| Add, remove or rename an enum value (state, kind, pattern, banner): exhaustive Dart `switch` and TS `never` checks stop compiling | major |
+| Remove or rename a prop or export; change what `size` means | major |
 | Change pixels (any fixture diff, reviewed in the PR) | minor |
 | Fix that does not change any fixture | patch |
-| Remove or rename an enum value, prop, or export; change what `size` means | major |
 
 Apps that cache rasterised pins must include the package version in their image key, so a pixel change never reuses a stale image.
+
+## Unreleased
+
+- Security: frame colours are copied with a plain index loop over the first 3 entries. Each caller field is read once, and no methods are called on caller objects, so an overridden `filter`/`slice` or a getter can no longer smuggle markup into the SVG.
+- Pixels: colours after the 3rd entry are no longer considered, even when earlier entries are invalid (fixture `invalid-colours`).
+- Docs: the README examples use an own-entry status map, put the DPR in the key, and cache in-flight installs per key with removal on failure. Enum additions are now classed as major.
 
 ## 1.0.0
 
