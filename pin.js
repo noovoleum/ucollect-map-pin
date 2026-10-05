@@ -23,7 +23,8 @@ const BANNER_Y = 62, BANNER_H = 19;
 //                 head fill   group opacity  badge
 const STATE = { available: [null, '1.00', null], closed: ['#E0B450', '0.50', 'zz'],
                 planned: ['#8A949C', '0.50', null], maintenance: ['#D93C4E', '0.60', 'x'] };
-const KIND = { station: ['#70AD47', 'uco'], collection_point: ['#7C4DAF', 'house'] };
+const BRAND = '#0B5A15';                                   // logo green (images/new_logo.png), both kinds
+const KIND = { station: [BRAND, 'uco'], collection_point: [BRAND, 'house'] };
 const PATTERN = { solid: 1, stripes: 1, rings: 1 };
 // Labels as stroked vector paths (dev/glyphs.mjs): fill, outline x/w, pill x/w, label path.
 const BANNER = {

@@ -113,7 +113,7 @@ String _bannerSvg(List<String>? b) {
   if (size.isNaN) throw ArgumentError.value(size, 'size', 'must be a number');
   final k = size.clamp(8.0, 512.0) / (_poleTip - _tip);
   final (fill, opacity) = switch (state) {
-    PinState.available => (kind == PinKind.station ? '#70AD47' : '#7C4DAF', '1.00'),
+    PinState.available => ('#0B5A15', '1.00'), // logo green (images/new_logo.png), both kinds
     PinState.closed => ('#E0B450', '0.50'),
     PinState.planned => ('#8A949C', '0.50'),
     PinState.maintenance => ('#D93C4E', '0.60'),

@@ -13,6 +13,11 @@ JS (`package.json`) and Dart (`flutter/pubspec.yaml`) share one version and one 
 
 Apps that cache rasterised pins must include the package version in their image key, so a pixel change never reuses a stale image.
 
+## 1.2.0
+
+- Pixels: available pins use the logo green `#0B5A15` (from `images/new_logo.png`), was `#70AD47`.
+- Pixels: collection points use the same green (was purple `#7C4DAF`); the house icon is the only difference from a station.
+
 ## 1.1.0
 
 - Pixels: status badges move to the upper-right shoulder, clear of the logo arrowhead.

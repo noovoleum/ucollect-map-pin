@@ -5,13 +5,13 @@ The uCollect map pin as a pure presentation component, for JS/React and Flutter.
 ## Install (pin to a tag)
 
 ```bash
-npm i github:noovoleum/ucollect-map-pin#v1.1.0
+npm i github:noovoleum/ucollect-map-pin#v1.2.0
 ```
 
 ```yaml
 dependencies:
   noovoleum_map_pin:
-    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.1.0 }
+    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.2.0 }
 ```
 
 ## Props
@@ -56,7 +56,7 @@ import { pinSvg } from '@noovoleum/map-pin';
 // App-owned mapping: the package never sees backend strings.
 const STATE = new Map([['active', 'available'], ['closed', 'closed'], ['planned', 'planned'], ['maintenance', 'maintenance'], ['offline', 'maintenance']]);
 const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 
 async function ensurePin(map, box) {
   const props = { state: STATE.get(box.status) ?? 'maintenance',   // own entries only; unknown => maintenance
@@ -104,7 +104,7 @@ Future<void> addBox(MapLibreMapController c, Box box, double dpr) async {
   final state = stateOf(box.status);
   final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
   final banner = state == PinState.planned ? PinBanner.soon : null;
-  final key = 'pin:1.1.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
+  final key = 'pin:1.2.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
   final install = installs[key] ??= () async {
     await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner, frame: box.frame, size: 34, pixelRatio: dpr));
   }();
