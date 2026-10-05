@@ -133,3 +133,5 @@ Widget: `MapPin(state: PinState.closed, kind: PinKind.station, semanticsLabel: '
 ## Example
 
 `examples/index.html` is a single page with no build step: an inline SVG grid, partner frames, a playground, and a MapLibre GL JS map. Run `python3 -m http.server 8000` in the repo root and open http://localhost:8000/examples/.
+
+Docs: https://docs.noovoleum.site/doc/map-pin-component-vXoCndEGMx (source: `docs/outline-map-pin.md`, images: `node docs/gen-images.mjs`).
