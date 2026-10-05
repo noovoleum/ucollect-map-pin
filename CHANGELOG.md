@@ -13,7 +13,13 @@ JS (`package.json`) and Dart (`flutter/pubspec.yaml`) share one version and one 
 
 Apps that cache rasterised pins must include the package version in their image key, so a pixel change never reuses a stale image.
 
-## Unreleased
+## 1.1.0
+
+- Pixels: status badges move to the upper-right shoulder, clear of the logo arrowhead.
+  - `closed`: the clock is replaced by a bare **Zz** (no disc), larger, dark strokes with a white halo.
+  - `maintenance`: the X disc is larger (r16, was r10).
+  - Closed and maintenance now differ by shape (open glyph vs disc), not only by colour.
+- Fix: the canvas grows on whichever side the badge sits (it assumed the left side).
 
 - Security: frame colours are copied with a plain index loop over the first 3 entries. Each caller field is read once, and no methods are called on caller objects, so an overridden `filter`/`slice` or a getter can no longer smuggle markup into the SVG.
 - Pixels: colours after the 3rd entry are no longer considered, even when earlier entries are invalid (fixture `invalid-colours`).

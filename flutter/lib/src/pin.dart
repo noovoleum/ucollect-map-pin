@@ -23,7 +23,11 @@ const _sep = 1.4;
 const _logoArc = 'M43.051,61.624 A16.88,16.88 0 1 1 56.631,48.510 L50.195,47.141 A10.3,10.3 0 1 0 41.909,55.144 Z';
 const _logoHead = 'M41.000,48.000 L53.500,57.500 L41.000,67.500 Z';
 const _house = 'M12 2.2 1.2 11.6h3.1V22h5.6v-6.4h4.2V22h5.6V11.6h3.1z';
-const _bx = 19.0, _by = 27.0, _br = 10.0;
+// Status badges sit on the upper-right shoulder (clear of the logo arrowhead at lower right).
+const _bx = 63.5, _by = 24.8; // closed Zz anchor
+const _xr = 16.0, _xx = 67.0, _xy = 21.5; // maintenance: X in a disc
+const _zk = 1.8; // closed: bare Zz (no disc), scale
+const _zz = [[-2.5, -6.5, 8.0, 2.6], [7.0, -14.5, 5.0, 2.1]]; // [x, y, size, stroke] per Z
 const _bannerY = 62.0, _bannerH = 19.0;
 const _banner = {
   PinBanner.soon: ['#3A444C', '15.140', '49.720', '16.640', '46.720', 'M28.360,67.660 C27.400,65.020 22.240,65.020 22.240,68.620 C22.240,71.980 28.360,70.780 28.360,74.380 C28.360,78.220 22.840,78.220 22.000,75.340 M35.080,65.500 C30.280,65.500 30.280,77.500 35.080,77.500 C39.880,77.500 39.880,65.500 35.080,65.500 Z M44.920,65.500 C40.120,65.500 40.120,77.500 44.920,77.500 C49.720,77.500 49.720,65.500 44.920,65.500 Z M51.160,77.500 L51.160,65.500 L58.360,77.500 L58.360,65.500'],
@@ -77,16 +81,17 @@ String _icon(PinKind kind) => kind == PinKind.station
     : '<g transform="translate(40.120 46.000) scale(1.55) translate(-12 -12.5)"><path d="$_house" fill="#fff" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/></g>';
 
 String _badge(PinState state) {
-  if (state != PinState.closed && state != PinState.maintenance) return '';
-  final x = _f(_bx), y = _f(_by);
-  const line = 'fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
-  String disc(String fill) => '<circle cx="$x" cy="$y" r="${_f(_br + 2)}" fill="#fff"/><circle cx="$x" cy="$y" r="${_f(_br)}" fill="$fill"/>';
+  const line = 'fill="none" stroke-linecap="round" stroke-linejoin="round"';
   if (state == PinState.closed) {
-    return '${disc('#4A3A00')}<circle cx="$x" cy="$y" r="5.500" fill="none" stroke="#fff" stroke-width="2.5"/>'
-        '<path d="M$x ${_f(_by - 3.2)}V${y}l2.200 1.500" ${line.replaceFirst('"3"', '"2.5"')}/>';
+    String d(List<double> z) =>
+        'M${_f(_bx + z[0] * _zk)} ${_f(_by + z[1] * _zk)}h${_f(z[2] * _zk)}l${_f(-z[2] * _zk)} ${_f(z[2] * _zk)}h${_f(z[2] * _zk)}';
+    return _zz.map((z) => '<path d="${d(z)}" $line stroke="#fff" stroke-width="${_f((z[3] + 3) * _zk)}"/>').join() +
+        _zz.map((z) => '<path d="${d(z)}" $line stroke="#3A2E00" stroke-width="${_f(z[3] * _zk)}"/>').join();
   }
-  const k = 4.2;
-  return '${disc('#7A1420')}<path d="M${_f(_bx - k)} ${_f(_by - k)}L${_f(_bx + k)} ${_f(_by + k)}M${_f(_bx + k)} ${_f(_by - k)}L${_f(_bx - k)} ${_f(_by + k)}" $line/>';
+  if (state != PinState.maintenance) return '';
+  const q = 4.2 * _xr / 10;
+  return '<circle cx="${_f(_xx)}" cy="${_f(_xy)}" r="${_f(_xr + 2)}" fill="#fff"/><circle cx="${_f(_xx)}" cy="${_f(_xy)}" r="${_f(_xr)}" fill="#7A1420"/>'
+      '<path d="M${_f(_xx - q)} ${_f(_xy - q)}L${_f(_xx + q)} ${_f(_xy + q)}M${_f(_xx + q)} ${_f(_xy - q)}L${_f(_xx - q)} ${_f(_xy + q)}" $line stroke="#fff" stroke-width="${_f(3 * _xr / 10)}"/>';
 }
 
 String _bannerSvg(List<String>? b) {
@@ -120,7 +125,17 @@ String _bannerSvg(List<String>? b) {
     hw = _r + _sep + fw + 1;
     top = _head(_sep + fw + 1).top;
   }
-  if (state == PinState.closed || state == PinState.maintenance) hw = math.max(hw, _cx - _bx + _br + 2);
+  if (state == PinState.maintenance) {
+    hw = math.max(hw, _xx - _cx + _xr + 2);
+    top = math.min(top, _xy - _xr - 2);
+  }
+  if (state == PinState.closed) {
+    for (final z in _zz) {
+      final h = (z[3] + 3) * _zk / 2; // white halo half-width
+      hw = math.max(hw, _bx + (z[0] + z[2]) * _zk + h - _cx + 1);
+      top = math.min(top, _by + z[1] * _zk - h - 1);
+    }
+  }
   if (b != null) hw = math.max(hw, _cx - double.parse(b[1]));
   final w = 2 * hw * k, h = (_poleTip - top) * k;
   final svg = '<svg xmlns="http://www.w3.org/2000/svg" width="${_f(w, 2)}" height="${_f(h, 2)}" '

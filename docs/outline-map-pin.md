@@ -1,4 +1,4 @@
-> **Map pin component.** `@noovoleum/map-pin` (JS/React) and `noovoleum_map_pin` (Flutter) draw the uCollect station pin from props. Like an avatar component, the package only draws. The **app and backend decide** which state, banner and frame each station gets. Source: [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) `v1.0.0`; the code wins when it differs from this page.
+> **Map pin component.** `@noovoleum/map-pin` (JS/React) and `noovoleum_map_pin` (Flutter) draw the uCollect station pin from props. Like an avatar component, the package only draws. The **app and backend decide** which state, banner and frame each station gets. Source: [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) `v1.1.0`; the code wins when it differs from this page.
 
 **In short**
 
@@ -13,14 +13,14 @@
 Pin to a tag.
 
 ```bash
-npm i github:noovoleum/ucollect-map-pin#v1.0.0
+npm i github:noovoleum/ucollect-map-pin#v1.1.0
 ```
 
 ```yaml
 # pubspec.yaml
 dependencies:
   noovoleum_map_pin:
-    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.0.0 }
+    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.1.0 }
 ```
 
 ## States and kinds
@@ -30,9 +30,9 @@ dependencies:
 | state | look | meaning for the user |
 |---|---|---|
 | `available` | full colour: green (station) or purple (collection point) | works, deposit now |
-| `closed` | muted yellow, clock badge | outside opening hours |
+| `closed` | muted yellow, bare **Zz** at upper right | outside opening hours |
 | `planned` | muted grey | not built yet |
-| `maintenance` | muted red, X badge; the station/house icon stays | doesn't work right now |
+| `maintenance` | muted red, white X in a red disc at upper right; the station/house icon stays | doesn't work right now |
 
 The 4 states match **App Availability** in [Box Command/Status Separation](https://docs.noovoleum.site/doc/box-commandstatus-separation-puhou7YiSw). `kind` changes only the icon: circular arrow for `station`, house for `collection_point`.
 
@@ -54,7 +54,7 @@ A partner frame is drawn **outside** a full-size pin (7u wide), with the pole in
 
 ![Partner frames (Alfamart, Pertamina, Indomaret, solid) across all four states](PARTNERS_IMG)
 
-The frame fades with the pin on non-available states. The status badge deliberately sits on top of the frame at the upper left: status wins over branding.
+The frame fades with the pin on non-available states. The status badge deliberately sits on top of the frame at the upper right: status wins over branding.
 
 ## Sizes
 
@@ -136,7 +136,7 @@ import { pinSvg } from '@noovoleum/map-pin';
 // App-owned mapping: the package never sees backend strings.
 const STATE = new Map([['active', 'available'], ['closed', 'closed'], ['planned', 'planned']]);
 const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 async function ensurePin(map, box) {
   const state = STATE.get(box.status) ?? 'maintenance';          // unknown → maintenance
@@ -181,7 +181,7 @@ Future<void> addBox(MapLibreMapController c, Box box, double dpr) async {
   final state = stateOf(box.status);
   final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
   final banner = state == PinState.planned ? PinBanner.soon : null;
-  final key = 'pin:1.0.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
+  final key = 'pin:1.1.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
   final install = installs[key] ??= () async {
     await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner,
         frame: box.frame, size: 34, pixelRatio: dpr));
@@ -213,6 +213,7 @@ maplibre_gl decodes PNGs differently on Android (bitmap density) and iOS (`UIScr
 | Keep the shipped flag pin shape | brand continuity; traced from `ucoflag.png` |
 | Non-available states muted, not high-contrast | available stations must be the most eye-catching; accepted trade-off: muted pins fall below the 3:1 contrast guideline |
 | Maintenance keeps the kind icon, X as a badge | a collection point under repair still reads as a collection point |
+| Closed = bare Zz, maintenance = X in a disc, both upper right | the two unavailable states differ by shape, not only colour, and stay readable at 40 px |
 | Partners control only the frame | uCollect owns fill, icon and state treatment |
 | No clustering or stacking | one pin per station; users zoom in |
 | Package has no logic | like an avatar component: the same props always give the same pixels |
@@ -233,8 +234,8 @@ JS and Dart versions move together. Committed fixtures are the oracle: `node ver
 | item | link |
 |---|---|
 | Repository | [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) |
-| Release | [v1.0.0](https://github.com/noovoleum/ucollect-map-pin/tree/v1.0.0) |
-| Artwork | [pin.js](https://github.com/noovoleum/ucollect-map-pin/blob/v1.0.0/pin.js) |
-| Dart port | [flutter/lib/src/pin.dart](https://github.com/noovoleum/ucollect-map-pin/blob/v1.0.0/flutter/lib/src/pin.dart) |
-| Changelog | [CHANGELOG.md](https://github.com/noovoleum/ucollect-map-pin/blob/v1.0.0/CHANGELOG.md) |
+| Release | [v1.1.0](https://github.com/noovoleum/ucollect-map-pin/tree/v1.1.0) |
+| Artwork | [pin.js](https://github.com/noovoleum/ucollect-map-pin/blob/v1.1.0/pin.js) |
+| Dart port | [flutter/lib/src/pin.dart](https://github.com/noovoleum/ucollect-map-pin/blob/v1.1.0/flutter/lib/src/pin.dart) |
+| Changelog | [CHANGELOG.md](https://github.com/noovoleum/ucollect-map-pin/blob/v1.1.0/CHANGELOG.md) |
 | App states | [Box Command/Status Separation](https://docs.noovoleum.site/doc/box-commandstatus-separation-puhou7YiSw) |

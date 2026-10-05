@@ -1,6 +1,6 @@
 {
   "name": "@noovoleum/map-pin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "uCollect map pin artwork: props in, SVG / React element out. Zero deps, no build.",
   "type": "module",
   "main": "./index.js",

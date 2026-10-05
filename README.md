@@ -5,13 +5,13 @@ The uCollect map pin as a pure presentation component, for JS/React and Flutter.
 ## Install (pin to a tag)
 
 ```bash
-npm i github:noovoleum/ucollect-map-pin#v1.0.0
+npm i github:noovoleum/ucollect-map-pin#v1.1.0
 ```
 
 ```yaml
 dependencies:
   noovoleum_map_pin:
-    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.0.0 }
+    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.1.0 }
 ```
 
 ## Props
@@ -29,9 +29,9 @@ dependencies:
 | `pixelRatio` (`pinPng` only) | | `double` | no | Raster scale, (0, 8]. PNG size = logical size × ratio, rounded. |
 
 Fixed by design (not props): fills, opacity, icons, badges, frame width, and banner geometry.
-- `closed` shows a clock badge.
-- `maintenance` shows an X badge and keeps the kind icon.
-- The status badge deliberately sits on top of the partner frame at the upper left: status wins over branding.
+- `closed` shows a bare **Zz** (dark strokes, white halo, no disc) on the upper right.
+- `maintenance` shows a white X in a red **disc** on the upper right, and keeps the kind icon. Different shapes, so closed and maintenance differ without relying on colour.
+- The status badge deliberately sits on top of the partner frame at the upper right: status wins over branding.
 - The canvas is cropped to the artwork. **Its bottom edge is the pole tip**, so anchor at `bottom`.
 
 Errors: an unknown enum value or a NaN size throws `TypeError` (JS) or `ArgumentError` (Dart). Because the API is typed, this is a programming error.
@@ -56,7 +56,7 @@ import { pinSvg } from '@noovoleum/map-pin';
 // App-owned mapping: the package never sees backend strings.
 const STATE = new Map([['active', 'available'], ['closed', 'closed'], ['planned', 'planned'], ['maintenance', 'maintenance'], ['offline', 'maintenance']]);
 const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 async function ensurePin(map, box) {
   const props = { state: STATE.get(box.status) ?? 'maintenance',   // own entries only; unknown => maintenance
@@ -104,7 +104,7 @@ Future<void> addBox(MapLibreMapController c, Box box, double dpr) async {
   final state = stateOf(box.status);
   final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
   final banner = state == PinState.planned ? PinBanner.soon : null;
-  final key = 'pin:1.0.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
+  final key = 'pin:1.1.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
   final install = installs[key] ??= () async {
     await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner, frame: box.frame, size: 34, pixelRatio: dpr));
   }();

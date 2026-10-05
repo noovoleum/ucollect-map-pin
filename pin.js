@@ -14,10 +14,14 @@ const SEP = 1.4;                                           // white gap head -> 
 const LOGO_ARC = 'M43.051,61.624 A16.88,16.88 0 1 1 56.631,48.510 L50.195,47.141 A10.3,10.3 0 1 0 41.909,55.144 Z';
 const LOGO_HEAD = 'M41.000,48.000 L53.500,57.500 L41.000,67.500 Z';
 const HOUSE = 'M12 2.2 1.2 11.6h3.1V22h5.6v-6.4h4.2V22h5.6V11.6h3.1z';
-const BX = 19, BY = 27, BR = 10;                           // top-left badge disc
+// Status badges sit on the upper-right shoulder (clear of the logo arrowhead at lower right).
+const BX = 63.5, BY = 24.8;                                 // closed Zz anchor
+const XR = 16, XX = 67, XY = 21.5;                          // maintenance: X in a disc, pushed out along the rim to clear the logo
+const ZK = 1.8;                                             // closed: bare Zz (no disc), scale
+const ZZ = [[-2.5, -6.5, 8, 2.6], [7, -14.5, 5, 2.1]];      // [x, y, size, stroke] per Z, badge units
 const BANNER_Y = 62, BANNER_H = 19;
 //                 head fill   group opacity  badge
-const STATE = { available: [null, '1.00', null], closed: ['#E0B450', '0.50', 'clock'],
+const STATE = { available: [null, '1.00', null], closed: ['#E0B450', '0.50', 'zz'],
                 planned: ['#8A949C', '0.50', null], maintenance: ['#D93C4E', '0.60', 'x'] };
 const KIND = { station: ['#70AD47', 'uco'], collection_point: ['#7C4DAF', 'house'] };
 const PATTERN = { solid: 1, stripes: 1, rings: 1 };
@@ -81,12 +85,15 @@ const iconEls = (icon) => icon === 'uco'
 
 function badgeEls(badge) {
   if (!badge) return [];
-  const line = { fill: 'none', stroke: '#fff', 'stroke-width': '3', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
-  const disc = (fill) => [el('circle', { cx: f(BX), cy: f(BY), r: f(BR + 2), fill: '#fff' }), el('circle', { cx: f(BX), cy: f(BY), r: f(BR), fill })];
-  if (badge === 'clock') return [...disc('#4A3A00'), el('circle', { cx: f(BX), cy: f(BY), r: '5.500', fill: 'none', stroke: '#fff', 'stroke-width': '2.5' }),
-    el('path', { d: `M${f(BX)} ${f(BY - 3.2)}V${f(BY)}l2.200 1.500`, ...line, 'stroke-width': '2.5' })];
-  const k = 4.2;
-  return [...disc('#7A1420'), el('path', { d: `M${f(BX - k)} ${f(BY - k)}L${f(BX + k)} ${f(BY + k)}M${f(BX + k)} ${f(BY - k)}L${f(BX - k)} ${f(BY + k)}`, ...line })];
+  const line = { fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+  if (badge === 'zz') {
+    const d = ([x, y, sz]) => `M${f(BX + x * ZK)} ${f(BY + y * ZK)}h${f(sz * ZK)}l${f(-sz * ZK)} ${f(sz * ZK)}h${f(sz * ZK)}`;
+    return [...ZZ.map((z) => el('path', { d: d(z), ...line, stroke: '#fff', 'stroke-width': f((z[3] + 3) * ZK) })),
+            ...ZZ.map((z) => el('path', { d: d(z), ...line, stroke: '#3A2E00', 'stroke-width': f(z[3] * ZK) }))];
+  }
+  const q = 4.2 * XR / 10;
+  return [el('circle', { cx: f(XX), cy: f(XY), r: f(XR + 2), fill: '#fff' }), el('circle', { cx: f(XX), cy: f(XY), r: f(XR), fill: '#7A1420' }),
+    el('path', { d: `M${f(XX - q)} ${f(XY - q)}L${f(XX + q)} ${f(XY + q)}M${f(XX + q)} ${f(XY - q)}L${f(XX - q)} ${f(XY + q)}`, ...line, stroke: '#fff', 'stroke-width': f(3 * XR / 10) })];
 }
 
 function bannerEls(b) {
@@ -108,7 +115,11 @@ export function pinTree({ state, kind, frame, banner, size = 34 } = {}, fw = FRA
   // Canvas: symmetric about the pole, bottom edge = pole tip (MapLibre icon-anchor 'bottom').
   let hw = R, top = TIP;
   if (fr.length) { hw = R + SEP + fw + 1; top = head(SEP + fw + 1).top; }
-  if (badge) hw = Math.max(hw, CX - BX + BR + 2);
+  if (badge === 'x') { hw = Math.max(hw, XX - CX + XR + 2); top = Math.min(top, XY - XR - 2); }
+  if (badge === 'zz') for (const [x, y, sz, w] of ZZ) {
+    const h = (w + 3) * ZK / 2;                              // white halo half-width
+    hw = Math.max(hw, BX + (x + sz) * ZK + h - CX + 1); top = Math.min(top, BY + y * ZK - h - 1);
+  }
   if (b) hw = Math.max(hw, CX - +b[1]);
   return el('svg', { xmlns: 'http://www.w3.org/2000/svg', width: f(2 * hw * k, 2), height: f((POLE_TIP - top) * k, 2),
     viewBox: `${f(CX - hw)} ${f(top)} ${f(2 * hw)} ${f(POLE_TIP - top)}` },
