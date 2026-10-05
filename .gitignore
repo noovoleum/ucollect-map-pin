@@ -5,3 +5,4 @@ flutter/pubspec.lock
 flutter/.flutter-plugins*
 _sheet/
 examples/_*.png
+docs-img/
