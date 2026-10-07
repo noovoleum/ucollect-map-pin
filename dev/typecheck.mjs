@@ -13,10 +13,10 @@ mkdirSync(pkg, { recursive: true });
 for (const f of ['package.json', 'index.js', 'index.d.ts', 'pin.js', 'react.js', 'react.d.ts']) cpSync(join(repo, f), join(pkg, f));
 writeFileSync(join(cwd, 'package.json'), '{"type":"module"}');
 writeFileSync(join(cwd, 'consumer.tsx'), `
-import { pinSvg, STATES, type PinProps } from '@noovoleum/map-pin';
+import { pinSvg, STATES, STATE_COLORS, type PinProps } from '@noovoleum/map-pin';
 import { MapPin } from '@noovoleum/map-pin/react';
 const p: PinProps = { state: 'closed', kind: 'collection_point', frame: { pattern: 'rings', colors: ['#E31E24'] }, banner: 'promo', size: 37.5 };
-export const s: string = pinSvg(p) + STATES[0];
+export const s: string = pinSvg(p) + STATES[0] + STATE_COLORS.closed.fill + STATE_COLORS.planned.opacity.toFixed(2);
 export const a = <MapPin {...p} aria-label="Closed collection point" className="pin" />;
 export const b = <MapPin state="available" kind="station" />;
 // @ts-expect-error unknown state is a type error

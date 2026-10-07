@@ -13,6 +13,10 @@ JS (`package.json`) and Dart (`flutter/pubspec.yaml`) share one version and one 
 
 Apps that cache rasterised pins must include the package version in their image key, so a pixel change never reuses a stale image.
 
+## 1.2.1
+
+- Export: per-state pin colours, `STATE_COLORS` (JS, frozen `{ fill, opacity }` per state) and `pinStateColors` (Dart), for things drawn beside the pin such as zoomed-out map dots. Derived from the drawing tables, so they always match the artwork. No fixture changes.
+
 ## 1.2.0
 
 - Pixels: available pins use the logo green `#0B5A15` (from `images/new_logo.png`), was `#70AD47`.
