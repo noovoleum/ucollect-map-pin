@@ -37,6 +37,17 @@ void main() {
     });
   }
 
+  test('pinStateColors matches the JS STATE_COLORS and the drawn pin', () {
+    // Same values as pin.js STATE_COLORS (asserted against the fixtures by verify.mjs).
+    final fixture = {for (final s in PinState.values) s: File('../fixtures/${s.name}-station-plain.svg').readAsStringSync()};
+    expect(pinStateColors.keys, PinState.values);
+    for (final s in PinState.values) {
+      final c = pinStateColors[s]!;
+      expect(fixture[s], contains('<g opacity="${c.opacity.toStringAsFixed(2)}">'));
+      expect(fixture[s], contains('fill="${c.fill}"/>'));
+    }
+  });
+
   test('NaN size throws', () {
     expect(() => pinSvg(state: PinState.available, kind: PinKind.station, size: double.nan), throwsArgumentError);
   });

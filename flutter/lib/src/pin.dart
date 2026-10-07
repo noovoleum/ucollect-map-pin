@@ -36,6 +36,15 @@ const _banner = {
 };
 final _hex = RegExp(r'^#[0-9a-fA-F]{6}$');
 
+/// Head fill (`#RRGGBB`) and group opacity per state, the same for both kinds. For things drawn
+/// beside the pin (e.g. zoomed-out dots); the pin itself is drawn from this table.
+const pinStateColors = <PinState, ({String fill, double opacity})>{
+  PinState.available: (fill: '#0B5A15', opacity: 1.0), // logo green (images/new_logo.png), both kinds
+  PinState.closed: (fill: '#E0B450', opacity: 0.5),
+  PinState.planned: (fill: '#8A949C', opacity: 0.5),
+  PinState.maintenance: (fill: '#D93C4E', opacity: 0.6),
+};
+
 String _f(num n, [int d = 3]) => n.toStringAsFixed(d);
 
 ({double top, double len, String d}) _head(double g) {
@@ -112,12 +121,8 @@ String _bannerSvg(List<String>? b) {
 }) {
   if (size.isNaN) throw ArgumentError.value(size, 'size', 'must be a number');
   final k = size.clamp(8.0, 512.0) / (_poleTip - _tip);
-  final (fill, opacity) = switch (state) {
-    PinState.available => ('#0B5A15', '1.00'), // logo green (images/new_logo.png), both kinds
-    PinState.closed => ('#E0B450', '0.50'),
-    PinState.planned => ('#8A949C', '0.50'),
-    PinState.maintenance => ('#D93C4E', '0.60'),
-  };
+  final colors = pinStateColors[state]!;
+  final fill = colors.fill, opacity = colors.opacity.toStringAsFixed(2);
   final b = banner == null ? null : _banner[banner]!;
   final fr = _frame(frame, fw);
   var hw = _r, top = _tip;

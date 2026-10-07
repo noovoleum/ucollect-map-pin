@@ -25,6 +25,10 @@ const STATE = { available: [null, '1.00', null], closed: ['#E0B450', '0.50', 'zz
                 planned: ['#8A949C', '0.50', null], maintenance: ['#D93C4E', '0.60', 'x'] };
 const BRAND = '#0B5A15';                                   // logo green (images/new_logo.png), both kinds
 const KIND = { station: [BRAND, 'uco'], collection_point: [BRAND, 'house'] };
+// Head fill + group opacity per state (the same for both kinds), for things drawn beside the pin,
+// e.g. zoomed-out dots. Derived from STATE, so it can never disagree with the artwork.
+export const STATE_COLORS = Object.freeze(Object.fromEntries(STATES.map((s) =>
+  [s, Object.freeze({ fill: STATE[s][0] ?? BRAND, opacity: Number(STATE[s][1]) })])));
 const PATTERN = { solid: 1, stripes: 1, rings: 1 };
 // Labels as stroked vector paths (dev/glyphs.mjs): fill, outline x/w, pill x/w, label path.
 const BANNER = {

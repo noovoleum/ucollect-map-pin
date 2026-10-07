@@ -1,4 +1,4 @@
-> **Map pin component.** `@noovoleum/map-pin` (JS/React) and `noovoleum_map_pin` (Flutter) draw the uCollect station pin from props. Like an avatar component, the package only draws. The **app and backend decide** which state, banner and frame each station gets. Source: [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) `v1.2.0`; the code wins when it differs from this page.
+> **Map pin component.** `@noovoleum/map-pin` (JS/React) and `noovoleum_map_pin` (Flutter) draw the uCollect station pin from props. Like an avatar component, the package only draws. The **app and backend decide** which state, banner and frame each station gets. Source: [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) `v1.2.1`; the code wins when it differs from this page.
 
 **In short**
 
@@ -13,14 +13,14 @@
 Pin to a tag.
 
 ```bash
-npm i github:noovoleum/ucollect-map-pin#v1.2.0
+npm i github:noovoleum/ucollect-map-pin#v1.2.1
 ```
 
 ```yaml
 # pubspec.yaml
 dependencies:
   noovoleum_map_pin:
-    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.2.0 }
+    git: { url: https://github.com/noovoleum/ucollect-map-pin.git, path: flutter, ref: v1.2.1 }
 ```
 
 ## States and kinds
@@ -88,7 +88,7 @@ Errors: an unknown enum value or a NaN size throws `TypeError` (JS) or `Argument
 | Flutter | `MapPin(...)` | widget |
 | Flutter | `pinPng(..., pixelRatio:)` | `Uint8List` PNG for maplibre_gl `addImage`; size = logical size × ratio |
 
-Also exported (JS): frozen lists `STATES`, `KINDS`, `FRAME_PATTERNS`, `BANNERS`.
+Also exported (JS): frozen lists `STATES`, `KINDS`, `FRAME_PATTERNS`, `BANNERS`, and `STATE_COLORS` (`{ fill, opacity }` per state). Dart exports the same colours as `pinStateColors`.
 
 ## What the app decides
 
@@ -136,7 +136,7 @@ import { pinSvg } from '@noovoleum/map-pin';
 // App-owned mapping: the package never sees backend strings.
 const STATE = new Map([['active', 'available'], ['closed', 'closed'], ['planned', 'planned']]);
 const Z = { available: 4, closed: 3, maintenance: 2, planned: 1 };
-const VERSION = '1.2.0';
+const VERSION = '1.2.1';
 
 async function ensurePin(map, box) {
   const state = STATE.get(box.status) ?? 'maintenance';          // unknown → maintenance
@@ -181,7 +181,7 @@ Future<void> addBox(MapLibreMapController c, Box box, double dpr) async {
   final state = stateOf(box.status);
   final kind = box.kind == 'collection_point' ? PinKind.collectionPoint : PinKind.station;
   final banner = state == PinState.planned ? PinBanner.soon : null;
-  final key = 'pin:1.2.0:$state:$kind:$banner:${box.frameKey}:34:$dpr';
+  final key = 'pin:1.2.1:$state:$kind:$banner:${box.frameKey}:34:$dpr';
   final install = installs[key] ??= () async {
     await c.addImage(key, await pinPng(state: state, kind: kind, banner: banner,
         frame: box.frame, size: 34, pixelRatio: dpr));
@@ -234,8 +234,8 @@ JS and Dart versions move together. Committed fixtures are the oracle: `node ver
 | item | link |
 |---|---|
 | Repository | [noovoleum/ucollect-map-pin](https://github.com/noovoleum/ucollect-map-pin) |
-| Release | [v1.2.0](https://github.com/noovoleum/ucollect-map-pin/tree/v1.2.0) |
-| Artwork | [pin.js](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.0/pin.js) |
-| Dart port | [flutter/lib/src/pin.dart](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.0/flutter/lib/src/pin.dart) |
-| Changelog | [CHANGELOG.md](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.0/CHANGELOG.md) |
+| Release | [v1.2.1](https://github.com/noovoleum/ucollect-map-pin/tree/v1.2.1) |
+| Artwork | [pin.js](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.1/pin.js) |
+| Dart port | [flutter/lib/src/pin.dart](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.1/flutter/lib/src/pin.dart) |
+| Changelog | [CHANGELOG.md](https://github.com/noovoleum/ucollect-map-pin/blob/v1.2.1/CHANGELOG.md) |
 | App states | [Box Command/Status Separation](https://docs.noovoleum.site/doc/box-commandstatus-separation-puhou7YiSw) |

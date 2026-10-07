@@ -2,9 +2,10 @@
 // `node verify.mjs --update` rewrites them (review the diff: changed pixels = minor release).
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, readdirSync, rmSync, mkdirSync } from 'node:fs';
-import { pinSvg, STATES, KINDS, FRAME_PATTERNS, BANNERS } from './index.js';
+import { pinSvg, STATES, KINDS, FRAME_PATTERNS, BANNERS, STATE_COLORS } from './index.js';
 
 const COLS = ['#E31E24', '#FFD200', '#005DAA'];
+const HEX_RE = /^#[0-9A-F]{6}$/i;
 const cases = [];
 for (const state of STATES) for (const kind of KINDS) for (const banner of [null, ...BANNERS])
   cases.push({ name: `${state}-${kind}-${banner ?? 'plain'}`, props: { state, kind, banner } });
@@ -38,6 +39,13 @@ assert.ok(!pinSvg(cases.find((c) => c.name === 'no-valid-colours').props).includ
 assert.ok(!/\bid=|url\(#/.test(cases.map((c) => pinSvg(c.props)).join('')), 'no ids => nothing to collide inline');
 assert.ok(pinSvg({ state: 'available', kind: 'station', size: 1e9 }).includes('height="512.00"'), 'size clamped');
 for (const t of [STATES, KINDS, FRAME_PATTERNS, BANNERS]) assert.ok(Object.isFrozen(t));
+// STATE_COLORS: frozen, one entry per state, and exactly what the pin draws for every kind.
+assert.deepEqual(Object.keys(STATE_COLORS), [...STATES]);
+assert.ok(Object.isFrozen(STATE_COLORS) && STATES.every((s) => Object.isFrozen(STATE_COLORS[s])));
+for (const s of STATES) for (const kind of KINDS) {
+  const { fill, opacity } = STATE_COLORS[s], svg = pinSvg({ state: s, kind });
+  assert.ok(HEX_RE.test(fill) && svg.includes(`<g opacity="${opacity.toFixed(2)}">`) && svg.includes(`fill="${fill}"/>`), `STATE_COLORS.${s} (${kind})`);
+}
 
 const update = process.argv.includes('--update');
 if (update) { rmSync('fixtures', { recursive: true, force: true }); mkdirSync('fixtures'); }
